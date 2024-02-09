@@ -1,10 +1,21 @@
 
 import { Request, Response } from "express"
 import Usuario from "../models/usuario";
+import bcryptjs from "bcryptjs";
 
 export const getUsuarios = async ( req: Request, res: Response) =>{
 
-    const usuarios = await Usuario.findAll();
+    const { size = 5, page = 1} = req.query;
+    const offset:number = (parseInt(page as string) - 1) * parseInt(size as string);
+    const usuarios = await Usuario.findAndCountAll({
+        limit : parseInt(size as string),
+        offset: offset,
+        order: [["id","DESC"]],
+        where: {
+            estado: true
+        }
+    });
+
     res.json(usuarios);
 };
 
@@ -25,30 +36,31 @@ export const getUsuario = async( req: Request, res: Response) =>{
 
 export const postUsuario = async( req: Request, res: Response) =>{
 
-    const { body } = req;
+    let { nombre, correo, password, role } = req.body;
 
     try {
 
-        const existeEmail = await Usuario.findOne({
-            where : {
-                email: body.email
-            }
-        });
+        //encriptar contrasena
+        const salt = bcryptjs.genSaltSync();
+        password = bcryptjs.hashSync(password, salt);
 
-        if(existeEmail){
-            return res.status(400).json({
-                msg: "Ya existe un usuario con el email" + body.email
-            })
-        };
 
-        const usuario = Usuario.build(body);
+        //construir el modelo de usuario
+        const usuario = Usuario.build({nombre,correo,password,role});
+
+        console.log("usuario:", usuario)
+        //guarda usuario en la bd
         await usuario.save();
 
-        res.json(usuario);
+        res.json({
+            usuario
+        });
 
     } catch (error) {
+        
         res.status(500).json({
             msg : 'hable con el administrador',
+            error: error
         })
     }
 };
@@ -57,9 +69,15 @@ export const postUsuario = async( req: Request, res: Response) =>{
 export const putUsuario = async ( req: Request, res: Response) =>{
 
     const { id } = req.params;
-    const { body } = req;
+    let { google , ...resto } = req.body;
 
     try {
+
+        if(resto.password){
+            //encriptar contrasena
+            const salt = bcryptjs.genSaltSync();
+            resto.password = bcryptjs.hashSync(resto.password, salt);
+        };
 
         const usuario = await Usuario.findByPk(id);
 
@@ -70,14 +88,17 @@ export const putUsuario = async ( req: Request, res: Response) =>{
             });
         }
 
-        await usuario?.update(body);
+        await usuario?.update(resto);
 
         res.json({
             msg : 'Put Usuario',
-            body
+            usuario
         })
     } catch (error) {
-        
+        res.status(500).json({
+            msg : 'hable con el administrador',
+            error: error
+        })
     }
 };
 
@@ -85,6 +106,7 @@ export const deleteUsuario = async ( req: Request, res: Response) =>{
 
     const { id } = req.params;
     const { body } = req;
+    const usuarioAuthenticado = req.app.locals;
 
     const usuarioExiste = await Usuario.findByPk(id);
 
@@ -101,7 +123,8 @@ export const deleteUsuario = async ( req: Request, res: Response) =>{
 
     res.json({
         msg : 'El usuario con el id :' + id + " ha sido eliminado",
-        body,
+        usuarioEliminado: usuarioExiste,
+        usuarioAuthenticado:usuarioAuthenticado
     })
 };
 

@@ -14,15 +14,19 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const usuarios_1 = __importDefault(require("../routes/usuarios"));
+const roles_1 = __importDefault(require("../routes/roles"));
+const auth_1 = __importDefault(require("../routes/auth"));
 const cors_1 = __importDefault(require("cors"));
 const connection_1 = __importDefault(require("../db/connection"));
 class Server {
     constructor() {
         this.apiPaths = {
-            usuarios: '/api/usuarios'
+            usuarios: '/api/usuarios',
+            roles: '/api/roles',
+            auth: '/api/auth'
         };
         this.app = (0, express_1.default)();
-        this.port = process.env.PORT || '8000';
+        this.port = process.env.PORT || '8080';
         this.dbConnection();
         this.middlewares();
         //Definir mis rutas
@@ -54,7 +58,9 @@ class Server {
         this.app.use(express_1.default.static('public'));
     }
     routes() {
+        this.app.use(this.apiPaths.auth, auth_1.default);
         this.app.use(this.apiPaths.usuarios, usuarios_1.default);
+        this.app.use(this.apiPaths.roles, roles_1.default);
     }
     listen() {
         this.app.listen(this.port, () => {
