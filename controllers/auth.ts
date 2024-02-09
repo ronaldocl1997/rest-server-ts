@@ -49,3 +49,12 @@ export const login = async( req: Request, res: Response) =>{
         })
     }
 };
+
+export const goggleSingIn = async( req:Request, res:Response) =>{
+    const {id_token} = req.body;
+
+    res.json({
+        msg: "todo bien",
+        id_token
+    })
+}

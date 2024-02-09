@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { check } from 'express-validator';
-import { login } from '../controllers/auth';
+import { goggleSingIn, login } from '../controllers/auth';
 import validarCampos from '../middlewares/validar-campos';
 
 const router = Router();
@@ -15,6 +15,11 @@ router.post('/login',[
     check('password', 'La contrasena es obligatoria').not().isEmpty(),
     validarCampos
 ], login);
+
+router.post('/google',[
+    check('id_token', 'id_token es necesario').not().isEmpty(),
+    validarCampos
+], goggleSingIn);
 
 router.put('/:id',  );
 

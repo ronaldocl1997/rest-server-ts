@@ -15,6 +15,10 @@ router.post('/login', [
     (0, express_validator_1.check)('password', 'La contrasena es obligatoria').not().isEmpty(),
     validar_campos_1.default
 ], auth_1.login);
+router.post('/google', [
+    (0, express_validator_1.check)('id_token', 'id_token es necesario').not().isEmpty(),
+    validar_campos_1.default
+], auth_1.goggleSingIn);
 router.put('/:id');
 router.delete('/:id');
 exports.default = router;

@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.login = void 0;
+exports.goggleSingIn = exports.login = void 0;
 const usuario_1 = __importDefault(require("../models/usuario"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const generar_jwt_1 = require("../helpers/generar-jwt");
@@ -58,4 +58,12 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.login = login;
+const goggleSingIn = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id_token } = req.body;
+    res.json({
+        msg: "todo bien",
+        id_token
+    });
+});
+exports.goggleSingIn = goggleSingIn;
 //# sourceMappingURL=auth.js.map
