@@ -38,7 +38,7 @@ const validarJWT = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
             });
         }
         req.app.locals = usuario;
-        console.log('localsssss:', req.app.locals);
+        console.log('usuario del token:', req.app.locals);
         next();
     }
     catch (error) {

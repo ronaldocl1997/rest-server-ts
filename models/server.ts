@@ -3,6 +3,9 @@ import express, {Application} from 'express';
 import userRoutes from '../routes/usuarios';
 import roleRoutes from '../routes/roles';
 import authRoutes from '../routes/auth';
+import categoriasRoutes from '../routes/categorias';
+import carpetasRoutes from '../routes/carpetas';
+import contenedoresRoutes from '../routes/contenedor-azure';
 import cors from 'cors';
 import db from '../db/connection';
 
@@ -13,7 +16,10 @@ class Server{
     private apiPaths = {
         usuarios: '/api/usuarios',
         roles: '/api/roles',
-        auth: '/api/auth'
+        auth: '/api/auth',
+        categorias: '/api/categorias',
+        carpetas: '/api/carpetas',
+        contenedores: '/api/contenedores'
     }
 
     constructor(){
@@ -42,7 +48,10 @@ class Server{
     middlewares() {
         
         // cors
-        this.app.use( cors());
+        this.app.use(cors({
+            origin: 'http://localhost:4200',
+            optionsSuccessStatus: 200, // Algunos navegadores antiguos (IE11) interpretan mal el éxito con 204
+          }));
 
         // Lectura del body
         this.app.use( express.json());
@@ -56,6 +65,9 @@ class Server{
         this.app.use(this.apiPaths.auth, authRoutes);
         this.app.use(this.apiPaths.usuarios, userRoutes);
         this.app.use(this.apiPaths.roles, roleRoutes);
+        this.app.use(this.apiPaths.categorias, categoriasRoutes);
+        this.app.use(this.apiPaths.carpetas, carpetasRoutes);
+        this.app.use(this.apiPaths.contenedores, contenedoresRoutes);
     }
 
     listen(){

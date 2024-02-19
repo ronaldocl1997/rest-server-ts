@@ -16,6 +16,9 @@ const express_1 = __importDefault(require("express"));
 const usuarios_1 = __importDefault(require("../routes/usuarios"));
 const roles_1 = __importDefault(require("../routes/roles"));
 const auth_1 = __importDefault(require("../routes/auth"));
+const categorias_1 = __importDefault(require("../routes/categorias"));
+const carpetas_1 = __importDefault(require("../routes/carpetas"));
+const contenedor_azure_1 = __importDefault(require("../routes/contenedor-azure"));
 const cors_1 = __importDefault(require("cors"));
 const connection_1 = __importDefault(require("../db/connection"));
 class Server {
@@ -23,7 +26,10 @@ class Server {
         this.apiPaths = {
             usuarios: '/api/usuarios',
             roles: '/api/roles',
-            auth: '/api/auth'
+            auth: '/api/auth',
+            categorias: '/api/categorias',
+            carpetas: '/api/carpetas',
+            contenedores: '/api/contenedores'
         };
         this.app = (0, express_1.default)();
         this.port = process.env.PORT || '8080';
@@ -51,7 +57,10 @@ class Server {
     }
     middlewares() {
         // cors
-        this.app.use((0, cors_1.default)());
+        this.app.use((0, cors_1.default)({
+            origin: 'http://localhost:4200',
+            optionsSuccessStatus: 200, // Algunos navegadores antiguos (IE11) interpretan mal el éxito con 204
+        }));
         // Lectura del body
         this.app.use(express_1.default.json());
         //carga carpeta punlica
@@ -61,6 +70,9 @@ class Server {
         this.app.use(this.apiPaths.auth, auth_1.default);
         this.app.use(this.apiPaths.usuarios, usuarios_1.default);
         this.app.use(this.apiPaths.roles, roles_1.default);
+        this.app.use(this.apiPaths.categorias, categorias_1.default);
+        this.app.use(this.apiPaths.carpetas, carpetas_1.default);
+        this.app.use(this.apiPaths.contenedores, contenedor_azure_1.default);
     }
     listen() {
         this.app.listen(this.port, () => {

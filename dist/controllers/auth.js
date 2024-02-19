@@ -16,6 +16,7 @@ exports.goggleSingIn = exports.login = void 0;
 const usuario_1 = __importDefault(require("../models/usuario"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const generar_jwt_1 = require("../helpers/generar-jwt");
+const google_verify_1 = require("../helpers/google-verify");
 const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { password, correo } = req.body;
     try {
@@ -60,10 +61,50 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 exports.login = login;
 const goggleSingIn = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id_token } = req.body;
-    res.json({
-        msg: "todo bien",
-        id_token
+    /*   try { */
+    const googleUser = yield (0, google_verify_1.googleVerify)(id_token);
+    let usuario = yield usuario_1.default.findOne({
+        where: {
+            correo: googleUser.email
+        }
     });
+    console.log('usuario en google sing', usuario);
+    if (!usuario) {
+        //tengo que crearlo
+        const data = {
+            nombre: googleUser.name,
+            correo: googleUser.email,
+            password: 'pass123',
+            img: googleUser.picture,
+            google: true,
+            role: "ADMIN_ROLE"
+        };
+        //construir el modelo de usuario
+        const usuario = usuario_1.default.build(data);
+        console.log("usuario:", usuario);
+        //guarda usuario en la bd
+        yield usuario.save();
+    }
+    ;
+    // si el usuario en bd esta activo
+    console.log('estado :', usuario === null || usuario === void 0 ? void 0 : usuario.get('estado'));
+    if (!(usuario === null || usuario === void 0 ? void 0 : usuario.get('estado'))) {
+        return res.status(401).json({
+            msg: 'Hable con el administrador, usuario bloqueado'
+        });
+    }
+    ;
+    //generar jwt
+    const token = yield (0, generar_jwt_1.generarJWT)(usuario.get('id'));
+    res.json({
+        usuario,
+        token
+    });
+    /*     } catch (error) {
+            res.status(400).json({
+                msg: 'El token no se pudo verificar'
+            })
+        } */
 });
 exports.goggleSingIn = goggleSingIn;
 //# sourceMappingURL=auth.js.map

@@ -37,7 +37,7 @@ const validarJWT = async (req: Request, res: Response, next:()=>void) =>{
        }
 
        req.app.locals = usuario as Record<string,any> & Locals;
-       console.log('localsssss:',req.app.locals);
+       console.log('usuario del token:',req.app.locals);
         next();
      } catch (error) {
         return res.status(401).json({

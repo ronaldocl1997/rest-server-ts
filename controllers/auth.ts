@@ -2,6 +2,7 @@ import { Request, Response } from "express"
 import Usuario from '../models/usuario';
 import bcryptjs from 'bcryptjs';
 import { generarJWT } from "../helpers/generar-jwt";
+import { GoogleSignInPayload, googleVerify } from "../helpers/google-verify";
 
 
 export const login = async( req: Request, res: Response) =>{
@@ -53,8 +54,56 @@ export const login = async( req: Request, res: Response) =>{
 export const goggleSingIn = async( req:Request, res:Response) =>{
     const {id_token} = req.body;
 
-    res.json({
-        msg: "todo bien",
-        id_token
-    })
+  /*   try { */
+
+        const googleUser:GoogleSignInPayload | any = await googleVerify(id_token);
+
+        let usuario = await Usuario.findOne({
+            where:{
+                correo: googleUser.email
+            }
+        });
+
+        console.log('usuario en google sing',usuario);
+
+        if( !usuario ){
+            //tengo que crearlo
+
+            const data = {
+                nombre: googleUser.name,
+                correo: googleUser.email,
+                password: 'pass123',
+                img: googleUser.picture,
+                google: true,
+                role:"ADMIN_ROLE"
+            };
+
+             //construir el modelo de usuario
+            const usuario = Usuario.build(data);
+
+            console.log("usuario:", usuario)
+            //guarda usuario en la bd
+            await usuario.save();
+        };
+
+        // si el usuario en bd esta activo
+        console.log('estado :', usuario?.get('estado'));
+        if( !usuario?.get('estado')){
+            return res.status(401).json({
+                msg: 'Hable con el administrador, usuario bloqueado'
+            });
+        };
+
+        //generar jwt
+        const token = await generarJWT(usuario.get('id') as string);
+
+        res.json({
+            usuario,
+            token
+        })
+/*     } catch (error) {
+        res.status(400).json({
+            msg: 'El token no se pudo verificar'
+        })
+    } */
 }
